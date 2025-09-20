@@ -127,7 +127,7 @@ fun WeatherScreen(viewModel: WeatherViewModel) {
                             "clear sky" in desc && (hour in 20..23 || hour in 0..5) -> "https://cdn.pixabay.com/animation/2023/01/26/04/56/04-56-18-501_512.gif"
                             else -> "https://cdn.pixabay.com/animation/2023/02/15/02/20/02-20-04-915_512.gif"
                         }
-
+// yo chai image load garne code ho.
                         AsyncImage(
                             contentDescription = null,
                             model = ImageRequest.Builder(LocalContext.current)
