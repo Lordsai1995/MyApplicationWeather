@@ -128,6 +128,7 @@ fun WeatherScreen(viewModel: WeatherViewModel) {
                             else -> "https://cdn.pixabay.com/animation/2023/02/15/02/20/02-20-04-915_512.gif"
                         }
 // yo chai image load garne code ho.
+                        //okay thank you
                         AsyncImage(
                             contentDescription = null,
                             model = ImageRequest.Builder(LocalContext.current)
