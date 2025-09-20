@@ -21,4 +21,19 @@ class WeatherViewModel(private val repository: WeatherRepository) : ViewModel() 
             }
         }
     }
+
+    fun fetchWeather(latitude: String, longitude: String, apiKey: String) {
+        viewModelScope.launch {
+            try {
+                val response = repository.getWeather(
+                    latitude = latitude,
+                    longitude = longitude,
+                    apiKey = apiKey
+                )
+                _weather.value = response
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 }

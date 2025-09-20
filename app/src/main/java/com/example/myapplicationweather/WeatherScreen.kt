@@ -1,5 +1,8 @@
 package com.example.myapplicationweather
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,12 +37,55 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage // Updated import
-import coil3.request.ImageRequest // Updated import
+import androidx.core.content.ContextCompat
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.google.android.gms.location.FusedLocationProviderClient
 
 @Composable
-fun WeatherScreen(viewModel: WeatherViewModel) {
+fun WeatherScreen(
+    fusedLocationClient: FusedLocationProviderClient,
+    permissionLauncher: ActivityResultLauncher<Array<String>>,
+    viewModel: WeatherViewModel
+) {
+    val context = LocalContext.current
+    var locationText by remember { mutableStateOf("Latitude: N/A, Longitude: N/A") }
+    LaunchedEffect(Unit) {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                if (location != null) {
+                    val latitude = location.latitude
+                    val longitude = location.longitude
+                    viewModel.fetchWeather(
+                        latitude = latitude.toString(),
+                        longitude = longitude.toString(),
+                        apiKey = BuildConfig.WEATHER_API_KEY
+                    )
+                } else {
+                    locationText = "Location not available"
+                }
+            }.addOnFailureListener {
+                locationText = "Failed to get location"
+            }
+        } else {
+            permissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
+
     var city by remember { mutableStateOf("") }
     val weatherState by viewModel.weather.collectAsState()
 
@@ -106,7 +153,9 @@ fun WeatherScreen(viewModel: WeatherViewModel) {
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
                         val desc = data.weather[0].description.lowercase()
-                        val hour = remember { java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY) }
+                        val hour = remember {
+                            java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+                        }
 
                         val gifUrl = when {
                             "storm" in desc -> "https://cdn.pixabay.com/animation/2025/03/20/16/33/16-33-20-645_512.gif"
